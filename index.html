@@ -89,6 +89,24 @@
   .result-info .letter-name{ color:var(--accent-letter); }
   .result-info .diac-name{ color:var(--accent-diac); }
 
+  .alt-toggle{
+    margin-top:6px;
+    padding:4px 12px;
+    border-radius:999px;
+    border:1.5px solid var(--accent-diac);
+    background:#fff;
+    color:var(--accent-diac);
+    font-family:inherit;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .alt-toggle.active{
+    background:var(--accent-diac);
+    color:#fff;
+  }
+  .alt-toggle[hidden]{ display:none; }
+
   /* ---------- Clock ---------- */
   .clock-wrap{
     position:relative;
@@ -229,6 +247,7 @@
       <div class="row">الحرف: <b class="letter-name" id="letterName">ب</b></div>
       <div class="row">التشكيل: <b class="diac-name" id="diacName">فتحة</b></div>
       <div class="row">القراءة: <b id="readAs">بَ</b></div>
+      <button type="button" id="taaMarbutaToggle" class="alt-toggle" hidden>قراءة بديلة: ة</button>
     </div>
   </div>
 
@@ -254,7 +273,7 @@
 
 <script>
 (function(){
-  const LETTERS = ['أ','ب','ت','ة','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+  const LETTERS = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
 
   const DIACRITICS = [
     { name:'فتحة',        mark:'َ' },
@@ -343,15 +362,38 @@
   const letterNameEl = document.getElementById('letterName');
   const diacNameEl = document.getElementById('diacName');
   const readAsEl = document.getElementById('readAs');
+  const taaToggle = document.getElementById('taaMarbutaToggle');
+
+  let useTaaMarbuta = false; // alternate reading of ت as ة
+
+  function effectiveLetterFor(letter){
+    return (letter === 'ت' && useTaaMarbuta) ? 'ة' : letter;
+  }
+
+  function refreshTaaToggle(letter){
+    if(letter === 'ت'){
+      taaToggle.hidden = false;
+      taaToggle.classList.toggle('active', useTaaMarbuta);
+      taaToggle.textContent = useTaaMarbuta ? 'رجوع لقراءة: ت' : 'قراءة بديلة: ة';
+    } else {
+      taaToggle.hidden = true;
+    }
+  }
+
+  taaToggle.addEventListener('click', () => {
+    useTaaMarbuta = !useTaaMarbuta;
+    updateResult();
+  });
 
   function updateResult(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = combineLetterDiacritic(letter, diacIndex);
+    const combined = combineLetterDiacritic(effectiveLetterFor(letter), diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
     readAsEl.textContent = combined;
+    refreshTaaToggle(letter);
 
     letterTiles.forEach((t, i) => t.classList.toggle('active', i === letterIndex));
     diacTiles.forEach((t, i) => t.classList.toggle('active', i === diacIndex));
@@ -362,6 +404,7 @@
 
   function selectLetter(i, animate){
     letterIndex = ((i % LETTER_COUNT) + LETTER_COUNT) % LETTER_COUNT;
+    useTaaMarbuta = false;
     if(!animate){ handLetter.classList.add('dragging'); } else { handLetter.classList.remove('dragging'); }
     updateResult();
   }
@@ -404,7 +447,7 @@
     if(dragMode === 'letter'){
       handLetter.style.transform = `translate(-50%,-100%) rotate(${deg}deg)`;
       const idx = Math.round(deg / LETTER_STEP) % LETTER_COUNT;
-      if(idx !== letterIndex){ letterIndex = idx; updateResultLight(); }
+      if(idx !== letterIndex){ letterIndex = idx; useTaaMarbuta = false; updateResultLight(); }
     } else {
       handDiacritic.style.transform = `translate(-50%,-100%) rotate(${deg}deg)`;
       const idx = Math.round(deg / DIAC_STEP) % DIAC_COUNT;
@@ -416,11 +459,12 @@
   function updateResultLight(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = combineLetterDiacritic(letter, diacIndex);
+    const combined = combineLetterDiacritic(effectiveLetterFor(letter), diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
     readAsEl.textContent = combined;
+    refreshTaaToggle(letter);
     letterTiles.forEach((t, i) => t.classList.toggle('active', i === letterIndex));
     diacTiles.forEach((t, i) => t.classList.toggle('active', i === diacIndex));
   }
