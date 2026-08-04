@@ -254,7 +254,7 @@
 
 <script>
 (function(){
-  const LETTERS = ['ا','ب','ت','ة','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+  const LETTERS = ['أ','ب','ت','ة','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
 
   const DIACRITICS = [
     { name:'فتحة',        mark:'َ' },
@@ -275,7 +275,7 @@
 
   function combineLetterDiacritic(letter, diacIndex){
     const diac = DIACRITICS[diacIndex];
-    if(diacIndex === TANWIN_FATH_INDEX && letter !== 'ة'){
+    if(diacIndex === TANWIN_FATH_INDEX && letter !== 'ة' && letter !== 'أ'){
       return letter + 'ا' + diac.mark;
     }
     return letter + diac.mark;
