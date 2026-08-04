@@ -95,6 +95,29 @@
     font-size:16px;
   }
 
+  .example-card{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:12px 16px;
+    margin:10px 0 4px;
+    text-align:center;
+  }
+  .example-card[hidden]{ display:none; }
+  .example-label{
+    font-size:12px;
+    color:#a49bb8;
+    margin-bottom:4px;
+  }
+  .example-word{
+    font-family:'Amiri Quran', 'Amiri', 'Traditional Arabic', serif;
+    font-weight:400;
+    font-size:32px;
+    color:var(--ink);
+  }
+
   .alt-toggle{
     margin-top:6px;
     padding:4px 12px;
@@ -266,11 +289,50 @@
     <span><i class="dot diac"></i>العقرب الصغير = التشكيل</span>
   </div>
   <p class="hint">اسحب أي عقرب حول الساعة، أو اضغط مباشرة على أي مربع حرف بالخارج أو مربع تشكيل بالداخل.</p>
+
+  <div class="example-card" id="exampleCard" hidden>
+    <div class="example-label">مثال</div>
+    <div class="example-word" id="exampleWord"></div>
+  </div>
 </div>
 
 <script>
 (function(){
   const LETTERS = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+
+  // Example word per letter, indexed like DIACRITICS (fath, damm, kasr, sukun,
+  // shadda, tanwin fath, tanwin damm, tanwin kasr). null = no clean example.
+  const EXAMPLES = {
+    'أ': ['أَسَد','أُذُن',null,'رَأْس',null,'خَطَأً','خَطَأٌ',null],
+    'ب': ['بَاب','بُومَة','بِنْت','أَبْيَض','حَبَّة','بَابًا','بَابٌ','بَابٍ'],
+    'ت': ['تَمْر','تُفَّاح','تِمْسَاح','كَتْف','حَتَّى','بَيْتًا','بَيْتٌ','بَيْتٍ'],
+    'ث': ['ثَعْلَب','ثُوم','ثِقَة','مَثْل','أَثَّرَ','حَدِيثًا','حَدِيثٌ','حَدِيثٍ'],
+    'ج': ['جَمَل','جُبْن','جِسْم','أَجْمَل','دَجَّاج','تَاجًا','تَاجٌ','تَاجٍ'],
+    'ح': ['حَمَل','حُوت','حِصَان','أَحْمَد','صَحَّ','مِفْتَاحًا','مِفْتَاحٌ','مِفْتَاحٍ'],
+    'خ': ['خَرُوف','خُبْز','خِيَار','أَخْضَر',null,'تَارِيخًا','تَارِيخٌ','تَارِيخٍ'],
+    'د': ['دَجَاجَة','دُبّ','دِيك','مَدْرَسَة','سَدَّ','وَلَدًا','وَلَدٌ','وَلَدٍ'],
+    'ذ': ['ذَهَب','أُذُن','ذِئْب','أُذْن',null,'حَذَرًا','لَذِيذٌ','لَذِيذٍ'],
+    'ر': ['رَجُل','رُمَّان','رِيح','قِرْد','مُرّ','قَمَرًا','قَمَرٌ','قَمَرٍ'],
+    'ز': ['زَرَافَة','زُهُور','زِيت','يَزْرَع',null,'كَنْزًا','كَنْزٌ','كَنْزٍ'],
+    'س': ['سَمَك','سُكَّر','سِنّ','مَسْجِد','حَسَّاس','دَرْسًا','دَرْسٌ','دَرْسٍ'],
+    'ش': ['شَجَرَة','شُبَّاك','شِتَاء','أَشْجَار',null,'عَطْشًا','عَطَشٌ','عَطَشٍ'],
+    'ص': ['صَقْر','صُورَة','صِينِيَّة','قَصْر','خَصَّ','قَمِيصًا','قَمِيصٌ','قَمِيصٍ'],
+    'ض': ['ضَفْدَع','ضُحَى','ضِيَافَة','يَضْحَك',null,'بَعْضًا','بَعْضٌ','بَعْضٍ'],
+    'ط': ['طَائِر','طُيُور','طِفْل','بَطْن',null,'مَطَرًا','مَطَرٌ','مَطَرٍ'],
+    'ظ': ['ظَبْي',null,'ظِلّ','حِفْظ',null,'لَفْظًا','لَفْظٌ','لَفْظٍ'],
+    'ع': ['عَسَل','عُصْفُور','عِنَب','يَعْمَل',null,'شَمْعًا','شَمْعٌ','شَمْعٍ'],
+    'غ': ['غَزَال','غُرَاب','غِطَاء','يَغْسِل',null,'بَالِغًا','بَالِغٌ','بَالِغٍ'],
+    'ف': ['فَرَس','فُول','فِيل','أَفْضَل',null,'طَرَفًا','طَرَفٌ','طَرَفٍ'],
+    'ق': ['قَمَر','قُفَّاز','قِطَّة','بَقْرَة','دَقَّ','طَرِيقًا','طَرِيقٌ','طَرِيقٍ'],
+    'ك': ['كَلْب','كُوب','كِتَاب','مَكْتَب','حَكَّ','سَمَكًا','سَمَكٌ','سَمَكٍ'],
+    'ل': ['لَيْمُون','لُغَة','لِسَان','قَلْب','كُلّ','جَمَلًا','جَمَلٌ','جَمَلٍ'],
+    'م': ['مَدْرَسَة','مُدَرِّس','مِفْتَاح','قَمْح','أُمّ','قَلَمًا','قَلَمٌ','قَلَمٍ'],
+    'ن': ['نَحْلَة','نُور','نِمْر','مَنْزِل','جَنَّة','بُسْتَانًا','بُسْتَانٌ','بُسْتَانٍ'],
+    'ه': ['هَدِيَّة','هُدْهُد','فَهِيم','نَهْر',null,'فَقِيهًا','فَقِيهٌ','فَقِيهٍ'],
+    'و': ['وَرْدَة','وُجُود','وِسَادَة','قَوْل',null,'دَلْوًا','دَلْوٌ','دَلْوٍ'],
+    'ي': ['يَد','يُحِبّ',null,'بَيْت','كُرْسِيّ','وَادِيًا',null,null],
+    'ة': ['مَدْرَسَةَ','مَدْرَسَةُ','مَدْرَسَةِ','مَدْرَسَة',null,'مَدْرَسَةً','مَدْرَسَةٌ','مَدْرَسَةٍ'],
+  };
 
   const DIACRITICS = [
     { name:'فتحة',        mark:'َ' },
@@ -360,6 +422,8 @@
   const diacNameEl = document.getElementById('diacName');
   const readAsEl = document.getElementById('readAs');
   const taaToggle = document.getElementById('taaMarbutaToggle');
+  const exampleCard = document.getElementById('exampleCard');
+  const exampleWordEl = document.getElementById('exampleWord');
 
   let useTaaMarbuta = false; // alternate reading of ت as ة
 
@@ -377,6 +441,16 @@
     }
   }
 
+  function refreshExample(effLetter, diacIndex){
+    const word = (EXAMPLES[effLetter] || [])[diacIndex];
+    if(word){
+      exampleWordEl.textContent = word;
+      exampleCard.hidden = false;
+    } else {
+      exampleCard.hidden = true;
+    }
+  }
+
   taaToggle.addEventListener('click', () => {
     useTaaMarbuta = !useTaaMarbuta;
     updateResult();
@@ -385,12 +459,14 @@
   function updateResult(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = combineLetterDiacritic(effectiveLetterFor(letter), diacIndex);
+    const effLetter = effectiveLetterFor(letter);
+    const combined = combineLetterDiacritic(effLetter, diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
     readAsEl.textContent = combined;
     refreshTaaToggle(letter);
+    refreshExample(effLetter, diacIndex);
 
     letterTiles.forEach((t, i) => t.classList.toggle('active', i === letterIndex));
     diacTiles.forEach((t, i) => t.classList.toggle('active', i === diacIndex));
@@ -456,12 +532,14 @@
   function updateResultLight(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = combineLetterDiacritic(effectiveLetterFor(letter), diacIndex);
+    const effLetter = effectiveLetterFor(letter);
+    const combined = combineLetterDiacritic(effLetter, diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
     readAsEl.textContent = combined;
     refreshTaaToggle(letter);
+    refreshExample(effLetter, diacIndex);
     letterTiles.forEach((t, i) => t.classList.toggle('active', i === letterIndex));
     diacTiles.forEach((t, i) => t.classList.toggle('active', i === diacIndex));
   }
