@@ -65,6 +65,13 @@
     justify-content:space-between;
     gap:10px;
   }
+  .result-main{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
   .result-big{
     font-family:'Amiri Quran', 'Amiri', 'Traditional Arabic', serif;
     font-size: 60px;
@@ -74,6 +81,25 @@
     text-align:center;
     color:var(--ink);
   }
+  .play-btn{
+    border:none;
+    background:var(--diac-tile);
+    color:#7a4315;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    font-size:15px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    transition: transform .12s ease, background .15s ease;
+  }
+  .play-btn:active{ transform:scale(0.88); }
+  .play-btn.speaking{ background:var(--accent-diac); color:#fff; }
+  .play-btn[hidden]{ display:none; }
   .result-info{
     flex:1;
     text-align:center;
@@ -110,6 +136,12 @@
     font-size:12px;
     color:#a49bb8;
     margin-bottom:4px;
+  }
+  .example-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
   }
   .example-word{
     font-family:'Amiri Quran', 'Amiri', 'Traditional Arabic', serif;
@@ -246,7 +278,10 @@
   </header>
 
   <div class="result-card">
-    <div class="result-big" id="resultBig">بَ</div>
+    <div class="result-main">
+      <div class="result-big" id="resultBig">بَ</div>
+      <button type="button" id="playLetter" class="play-btn" aria-label="نطق">🔊</button>
+    </div>
     <div class="result-info">
       <div class="row">الحرف: <b class="letter-name" id="letterName">ب</b></div>
       <div class="row">التشكيل: <b class="diac-name" id="diacName">فتحة</b></div>
@@ -273,7 +308,10 @@
 
   <div class="example-card" id="exampleCard" hidden>
     <div class="example-label">مثال من القرآن الكريم</div>
-    <div class="example-word" id="exampleWord"></div>
+    <div class="example-row">
+      <div class="example-word" id="exampleWord"></div>
+      <button type="button" id="playExample" class="play-btn" aria-label="نطق المثال">🔊</button>
+    </div>
   </div>
 </div>
 
@@ -407,6 +445,44 @@
   const readAsEl = document.getElementById('readAs');
   const exampleCard = document.getElementById('exampleCard');
   const exampleWordEl = document.getElementById('exampleWord');
+  const playLetterBtn = document.getElementById('playLetter');
+  const playExampleBtn = document.getElementById('playExample');
+
+  /* ---------- Speech (Web Speech API) ---------- */
+  const synth = window.speechSynthesis;
+  let arabicVoice = null;
+
+  function pickArabicVoice(){
+    if(!synth) return null;
+    const voices = synth.getVoices();
+    return voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ar')) || null;
+  }
+
+  if(synth){
+    arabicVoice = pickArabicVoice();
+    synth.addEventListener('voiceschanged', () => { arabicVoice = pickArabicVoice(); });
+  } else {
+    playLetterBtn.hidden = true;
+    playExampleBtn.hidden = true;
+  }
+
+  function speak(text, btn){
+    if(!synth || !text) return;
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    if(arabicVoice) utter.voice = arabicVoice;
+    utter.lang = arabicVoice ? arabicVoice.lang : 'ar-SA';
+    utter.rate = 0.8;
+    utter.onstart = () => btn.classList.add('speaking');
+    utter.onend = () => btn.classList.remove('speaking');
+    utter.onerror = () => btn.classList.remove('speaking');
+    synth.speak(utter);
+  }
+
+  if(synth){
+    playLetterBtn.addEventListener('click', () => speak(readAsEl.textContent, playLetterBtn));
+    playExampleBtn.addEventListener('click', () => speak(exampleWordEl.textContent, playExampleBtn));
+  }
 
   function refreshExample(letter, diacIndex){
     const word = (EXAMPLES[letter] || [])[diacIndex];
