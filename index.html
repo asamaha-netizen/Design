@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>ساعة الحروف والتشكيل</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1:#fdf6ec;
@@ -24,7 +24,7 @@
     margin:0; padding:0; min-height:100%;
     background: radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1) 60%);
     color:var(--ink);
-    font-family:'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family:'Cairo', 'Amiri Quran', 'Segoe UI', Tahoma, Arial, sans-serif;
     overflow-x:hidden;
   }
   .app{
@@ -260,7 +260,7 @@
     { name:'فتحة',        mark:'َ' },
     { name:'ضمة',         mark:'ُ' },
     { name:'كسرة',        mark:'ِ' },
-    { name:'سكون',        mark:'ْ' },
+    { name:'سكون',        mark:'ۡ' },
     { name:'شدة',         mark:'ّ' },
     { name:'تنوين فتح',   mark:'ً' },
     { name:'تنوين ضم',    mark:'ٌ' },
@@ -271,6 +271,15 @@
   const DIAC_COUNT = DIACRITICS.length;
   const LETTER_STEP = 360 / LETTER_COUNT;
   const DIAC_STEP = 360 / DIAC_COUNT;
+  const TANWIN_FATH_INDEX = DIACRITICS.findIndex(d => d.name === 'تنوين فتح');
+
+  function combineLetterDiacritic(letter, diacIndex){
+    const diac = DIACRITICS[diacIndex];
+    if(diacIndex === TANWIN_FATH_INDEX && letter !== 'ة'){
+      return letter + 'ا' + diac.mark;
+    }
+    return letter + diac.mark;
+  }
 
   const OUTER_R = 42;   // % radius for letters ring
   const INNER_R = 26;   // % radius for diacritics ring
@@ -338,7 +347,7 @@
   function updateResult(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = letter + diac.mark;
+    const combined = combineLetterDiacritic(letter, diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
@@ -407,7 +416,7 @@
   function updateResultLight(){
     const letter = LETTERS[letterIndex];
     const diac = DIACRITICS[diacIndex];
-    const combined = letter + diac.mark;
+    const combined = combineLetterDiacritic(letter, diacIndex);
     resultBig.textContent = combined;
     letterNameEl.textContent = letter;
     diacNameEl.textContent = diac.name;
