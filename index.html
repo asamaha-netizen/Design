@@ -155,6 +155,11 @@
     font-size:32px;
     color:var(--ink);
   }
+  .example-ref{
+    font-size:11.5px;
+    color:#a49bb8;
+    margin-top:4px;
+  }
 
   /* ---------- Clock ---------- */
   .clock-wrap{
@@ -317,6 +322,7 @@
       <div class="example-word" id="exampleWord"></div>
       <button type="button" id="playExample" class="play-btn" aria-label="نطق المثال">🔊</button>
     </div>
+    <div class="example-ref" id="exampleRef"></div>
   </div>
 </div>
 
@@ -360,6 +366,53 @@
     'ي': ['يَدَا','يُولَدْ',null,'عَلَيْهِمْ','إِيَّاكَ','عَلِيًّا','عَلِيٌّ',null],
     'ة': ['حَمَّالَةَ','الْجَنَّةُ','الْجِنَّةِ',null,null,'سَاعَةً','آتِيَةٌ','بِحِجَارَةٍ'],
   };
+
+  // Surah/ayah reference for example words drawn from the ten short,
+  // universally-memorized surahs, used to play real recitation audio
+  // for the whole ayah (word-level audio isn't available). Words from
+  // longer surahs are left unmapped and fall back to text-to-speech.
+  const AYAH_REF = {
+    'بِسْمِ':[1,1,'الفاتحة'], 'الرَّحْمَٰنِ':[1,1,'الفاتحة'], 'الرَّحِيمِ':[1,1,'الفاتحة'],
+    'الْحَمْدُ':[1,2,'الفاتحة'], 'لِلَّهِ':[1,2,'الفاتحة'],
+    'مَالِكِ':[1,4,'الفاتحة'], 'الدِّينِ':[1,4,'الفاتحة'],
+    'نَعْبُدُ':[1,5,'الفاتحة'], 'نَسْتَعِينُ':[1,5,'الفاتحة'], 'إِيَّاكَ':[1,5,'الفاتحة'],
+    'اهْدِنَا':[1,6,'الفاتحة'], 'الصِّرَاطَ':[1,6,'الفاتحة'],
+    'غَيْرِ':[1,7,'الفاتحة'], 'الْمَغْضُوبِ':[1,7,'الفاتحة'], 'الضَّالِّينَ':[1,7,'الفاتحة'],
+    'أَنْعَمْتَ':[1,7,'الفاتحة'], 'عَلَيْهِمْ':[1,7,'الفاتحة'],
+    'فَعَلَ':[105,1,'الفيل'],
+    'يَجْعَلْ':[105,2,'الفيل'], 'تَضْلِيلٍ':[105,2,'الفيل'],
+    'سِجِّيلٍ':[105,4,'الفيل'], 'بِحِجَارَةٍ':[105,4,'الفيل'],
+    'قُرَيْشٍ':[106,1,'قريش'],
+    'الشِّتَاءِ':[106,2,'قريش'],
+    'الْبَيْتِ':[106,3,'قريش'],
+    'أَطْعَمَهُم':[106,4,'قريش'], 'جُوعٍ':[106,4,'قريش'], 'خَوْفٍ':[106,4,'قريش'],
+    'فَصَلِّ':[108,2,'الكوثر'], 'وَانْحَرْ':[108,2,'الكوثر'],
+    'جَاءَ':[110,1,'النصر'], 'نَصْرُ':[110,1,'النصر'], 'الْفَتْحُ':[110,1,'النصر'],
+    'يَدْخُلُونَ':[110,2,'النصر'], 'أَفْوَاجًا':[110,2,'النصر'],
+    'فَسَبِّحْ':[110,3,'النصر'], 'تَوَّابًا':[110,3,'النصر'], 'كَانَ':[110,3,'النصر'],
+    'تَبَّتْ':[111,1,'المسد'], 'يَدَا':[111,1,'المسد'], 'لَهَبٍ':[111,1,'المسد'],
+    'أَغْنَىٰ':[111,2,'المسد'], 'مَالُهُ':[111,2,'المسد'],
+    'نَارًا':[111,3,'المسد'],
+    'امْرَأَتُهُ':[111,4,'المسد'], 'حَمَّالَةَ':[111,4,'المسد'],
+    'حَبْلٌ':[111,5,'المسد'],
+    'أَحَد':[112,1,'الإخلاص'], 'أَحَدٌ':[112,1,'الإخلاص'], 'هُوَ':[112,1,'الإخلاص'],
+    'اللَّهُ':[112,1,'الإخلاص'], 'قُلْ':[112,1,'الإخلاص'],
+    'لَمْ':[112,3,'الإخلاص'], 'يَلِدْ':[112,3,'الإخلاص'], 'يُولَدْ':[112,3,'الإخلاص'],
+    'يَكُن':[112,4,'الإخلاص'], 'كُفُوًا':[112,4,'الإخلاص'],
+    'أَعُوذُ':[113,1,'الفلق'],
+    'شَرِّ':[113,2,'الفلق'], 'خَلَقَ':[113,2,'الفلق'],
+    'غَاسِقٍ':[113,3,'الفلق'], 'إِذَا':[113,3,'الفلق'],
+    'النَّفَّاثَاتِ':[113,4,'الفلق'],
+    'حَاسِدٍ':[113,5,'الفلق'],
+    'النَّاسِ':[114,1,'الناس'],
+    'الَّذِي':[114,5,'الناس'], 'يُوَسْوِسُ':[114,5,'الناس'], 'صُدُورِ':[114,5,'الناس'],
+    'الْجِنَّةِ':[114,6,'الناس'],
+  };
+
+  function ayahAudioUrl(surah, ayah){
+    const pad = n => String(n).padStart(3,'0');
+    return `https://everyayah.com/data/Alafasy_128kbps/${pad(surah)}${pad(ayah)}.mp3`;
+  }
 
   const DIACRITICS = [
     { name:'فتحة',        mark:'َ' },
@@ -450,6 +503,7 @@
   const readAsEl = document.getElementById('readAs');
   const exampleCard = document.getElementById('exampleCard');
   const exampleWordEl = document.getElementById('exampleWord');
+  const exampleRefEl = document.getElementById('exampleRef');
   const playLetterBtn = document.getElementById('playLetter');
   const playExampleBtn = document.getElementById('playExample');
 
@@ -467,8 +521,7 @@
     arabicVoice = pickArabicVoice();
     synth.addEventListener('voiceschanged', () => { arabicVoice = pickArabicVoice(); });
   } else {
-    playLetterBtn.hidden = true;
-    playExampleBtn.hidden = true;
+    playLetterBtn.hidden = true; // the isolated letter+haraka sound has no Quran source; TTS-only
   }
 
   function speak(text, btn){
@@ -486,14 +539,31 @@
 
   if(synth){
     playLetterBtn.addEventListener('click', () => speak(readAsEl.textContent, playLetterBtn));
-    playExampleBtn.addEventListener('click', () => speak(exampleWordEl.textContent, playExampleBtn));
   }
+
+  /* ---------- Recitation audio for example words (with TTS fallback) ---------- */
+  let ayahAudio = null;
+
+  playExampleBtn.addEventListener('click', () => {
+    const word = exampleWordEl.textContent;
+    const ref = AYAH_REF[word];
+    if(!ref){ speak(word, playExampleBtn); return; }
+
+    if(ayahAudio){ ayahAudio.pause(); }
+    playExampleBtn.classList.add('speaking');
+    ayahAudio = new Audio(ayahAudioUrl(ref[0], ref[1]));
+    ayahAudio.addEventListener('ended', () => playExampleBtn.classList.remove('speaking'));
+    ayahAudio.addEventListener('error', () => { playExampleBtn.classList.remove('speaking'); speak(word, playExampleBtn); });
+    ayahAudio.play().catch(() => { playExampleBtn.classList.remove('speaking'); speak(word, playExampleBtn); });
+  });
 
   function refreshExample(letter, diacIndex){
     const word = (EXAMPLES[letter] || [])[diacIndex];
     if(word){
       exampleWordEl.textContent = word;
       exampleCard.hidden = false;
+      const ref = AYAH_REF[word];
+      exampleRefEl.textContent = ref ? `سورة ${ref[2]} — آية ${ref[1]} (تشغيل الآية كاملة)` : 'نطق آلي (مش تلاوة)';
     } else {
       exampleCard.hidden = true;
     }
